@@ -26,9 +26,10 @@ class Layout extends Component {
             <div>
                 <Toolbar
                     
-                    drawerToggleClicked={this.sideDrawerToggleHandler} />
+                    drawerToggleClicked={this.sideDrawerToggleHandler}
+                    isAuth = {this.props.isAuth} />
                 <SideDrawer
-                    
+                    isAuth = {this.props.isAuth}
                     open={this.state.showSideDrawer}
                     closed={this.sideDrawerClosedHandler} />
                 <main className={classes.Content}>
@@ -38,7 +39,12 @@ class Layout extends Component {
         )
     }
 }
+const mapStateToProps = (store) => {
+    return({
+        isAuth:store.Auth.token!==null
+    })
+}
 
 
 
-export default  Layout ;
+export default  connect(mapStateToProps)(Layout) ;

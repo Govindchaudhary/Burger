@@ -6,7 +6,7 @@ import Order from '../../components/Order/Order';
 
 class Orders extends Component {
     componentDidMount() {
-        this.props.fetchOrder();
+        this.props.fetchOrder(this.props.token,this.props.userId);
     }
     render() {
         let order = <Spinner/>;
@@ -32,7 +32,9 @@ const mapstateToProps = (store) => {
         {
             orders:store.Order.orders,
             price:store.Order.purchased,
-            loading:store.Order.loading
+            loading:store.Order.loading,
+            token:store.Auth.token,
+            userId:store.Auth.userId
 
         });
     

@@ -7,8 +7,15 @@ const initialState = {
 
 export const Order = (state=initialState,action) => {
    switch(action.type) {
+      case 'PURCHASE_BURGER_START':
+        return({...state,loading:true});
+
        case 'PURCHASE_SUCCESS' :
-          return({...state,purchased:true});
+          return({...state,
+            purchased:true,
+            loading:false,
+            orders:state.orders.concat({...action.orderData,id:action.orderId})
+        });
        case 'FETCH_ORDER_START':
           return({...state,loading:true});
        case 'FETCH_ORDER_SUCCESS':

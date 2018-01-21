@@ -2,9 +2,11 @@ import React,{Component} from 'react';
 import Input from '../../components/UI/Input/Input';
 import Button from '../../components/UI/Button/Button';
 import classes from './Auth.css';
-import axios from '../../axios-orders';
+
+import { Redirect } from 'react-router-dom';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
+import Spinner from '../../components/UI/Spinner/Spinner';
 
 class Auth extends Component {
     state = {
@@ -100,30 +102,45 @@ class Auth extends Component {
                 config:this.state.controls[key]
             });
         }
-        let form = (
-            <form >
-                {formElementsArray.map(formElement => (
-                    <Input
-                    key = {formElement.id}
-                    elementType = {formElement.config.elementType}
-                    elementConfig = {formElement.config.elementConfig}
-                    value = {formElement.config.value}
-                    invalid={!formElement.config.valid}
-                    shouldValidate={formElement.config.validation}
-                    touched={formElement.config.touched}
-                    changed = {(event) => this.inputChangedHandler(event,formElement.id)}
-                    />
+        let form = formElementsArray.map( formElement => (
+            <Input
+                key={formElement.id}
+                elementType={formElement.config.elementType}
+                elementConfig={formElement.config.elementConfig}
+                value={formElement.config.value}
+                invalid={!formElement.config.valid}
+                shouldValidate={formElement.config.validation}
+                touched={formElement.config.touched}
+                changed={( event ) => this.inputChangedHandler( event, formElement.id )} />
+        ) );
 
-                ))}
-                <Button btnType = 'Success' clicked = {this.submitHandler} >Log In</Button>
-            </form>
-        );
-        
+        if ( this.props.loading ) {
+            form = <Spinner />
+        }
+
+        let errorMessage = null;
+
+        if ( this.props.error ) {
+            errorMessage = (
+                <p style={{color:'red'}}>Invalid email or password</p>
+            );
+        }
+
+        let authRedirect = null;
+        if ( this.props.isAuthenticated ) {
+            authRedirect = <Redirect to={this.props.authRedirectPath} />
+        }
+
             return (
-            <div className={classes.Auth}>
-                <h4>Log In or create a new account</h4>
-                {form}
-            </div>
+                <div className={classes.Auth}>
+                <h4>create a new account or login</h4>
+                {authRedirect}
+                {errorMessage}
+                <form onSubmit={this.submitHandler}>
+                    {form}
+                    <Button btnType="Success">Log In</Button>
+                </form>
+                </div>
         );
         
 
@@ -132,10 +149,13 @@ class Auth extends Component {
 }
 const mapStateToProps = (store) => {
     return({
-        token:store.Auth.token,
-        userId:store.Auth.userId,
+        
         loading:store.Auth.loading,
-        error:store.Auth.error
+        error:store.Auth.error,
+        buildingBurger:store.Burger.purchasing,
+        isAuthenticated: store.Auth.token !== null,
+        
+        authRedirectPath: store.Auth.authRedirectPath
     });
 
 

@@ -2,7 +2,9 @@ import React,{Component} from 'react';
 import Input from '../../../components/UI/Input/Input';
 import Button from '../../../components/UI/Button/Button';
 import classes from './ContactData.css';
-import axios from '../../../axios-orders';
+
+import * as actions from '../../../actions';
+import {connect} from 'react-redux';
 
 class ContactData extends Component {
     state = {
@@ -15,7 +17,8 @@ class ContactData extends Component {
                 },
                 value:'',
                 validation:{
-                    required:true
+                    required:true,
+                    minLength:5
                 },
                 valid:false,
                 touched:false
@@ -29,7 +32,9 @@ class ContactData extends Component {
                 value:'',
                 validation:{
                     required:true,
-                    isEmail:true
+                    isEmail:true,
+                    minLength:12
+                    
                 },
                 valid:false,
                 touched:false
@@ -43,7 +48,9 @@ class ContactData extends Component {
                 value:'',
                 validation:{
                     required:true,
-                    isContact:true
+                    isContact:true,
+                    minLength:10,
+                    maxLength:10
                 },
                 valid:false,
                 touched:false
@@ -56,7 +63,8 @@ class ContactData extends Component {
                 },
                 value:'',
                 validation:{
-                    required:true
+                    required:true,
+                    minLength:10
                 },
                 valid:false,
                 touched:false
@@ -74,20 +82,57 @@ class ContactData extends Component {
                 valid:false,
                 touched:false
             }
+        },
+        formIsValid:false
+    }
+   
+    checkValidity ( value, rules ) {
+        let isValid = true;
+        if ( !rules ) {
+            return true;
         }
+
+        if ( rules.required ) {
+            isValid = value.trim() !== '' && isValid;
+        }
+
+        if ( rules.minLength ) {
+            isValid = value.length >= rules.minLength && isValid
+        }
+
+        if ( rules.maxLength ) {
+            isValid = value.length <= rules.maxLength && isValid
+        }
+
+        if ( rules.isEmail ) {
+            const pattern = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+            isValid = pattern.test( value ) && isValid
+        }
+
+        if ( rules.isContact ) {
+            const pattern = /^\d+$/;
+            isValid = pattern.test( value ) && isValid
+        }
+
+        return isValid;
     }
     inputChangedHandler = (event,inputIdentifier) => {
         
         const updatedForm = {...this.state.orderForm,[inputIdentifier]:{
-            ...this.state.orderForm[inputIdentifier],value:event.target.value
+            ...this.state.orderForm[inputIdentifier],value:event.target.value,
+            valid: this.checkValidity( event.target.value, this.state.orderForm[inputIdentifier].validation ),
+            touched: true
         }};
         
         console.log({updatedForm});
         this.setState({orderForm:updatedForm});
+        let formIsValid = true;
+        for (let inputIdentifier in updatedForm) {
+            formIsValid = updatedForm[inputIdentifier].valid && formIsValid;
+        }
+        this.setState({orderForm: updatedForm, formIsValid: formIsValid});
        
-
-
-    }
+ }
     orderHandler = (event) => {
         event.preventDefault();
         const orderForm = {
@@ -100,10 +145,13 @@ class ContactData extends Component {
         const orderDetails = {
             price:this.props.price,
             ingredients:this.props.ingredients,
-            orderData:orderForm
+            orderData:orderForm,
+            userId: this.props.userId
         };
-        axios.post('/orders.json',orderDetails).then(console.log('successAgain'));
         
+        console.log(this.props.token);
+        this.props.purchaseBurger(orderDetails,this.props.token);
+       
         
     }
     render() {
@@ -115,7 +163,7 @@ class ContactData extends Component {
             });
         }
         let form = (
-            <form >
+            <form onSubmit={this.orderHandler} >
                 {formElementsArray.map(formElement => (
                     <Input
                     key = {formElement.id}
@@ -129,7 +177,7 @@ class ContactData extends Component {
                     />
 
                 ))}
-                <Button btnType = 'Success' clicked = {this.orderHandler}>Order</Button>
+                <Button btnType="Success" disabled={!this.state.formIsValid}>ORDER</Button>
             </form>
         );
         
@@ -137,6 +185,7 @@ class ContactData extends Component {
             <div className={classes.ContactData}>
                 <h4>Enter your Contact Data</h4>
                 {form}
+                
             </div>
         );
         
@@ -144,4 +193,11 @@ class ContactData extends Component {
     }
     
 }
-export default ContactData;
+const mapStateToProps = state => {
+    return {
+        
+        token: state.Auth.token,
+        userId: state.Auth.userId
+    }
+};
+export default connect(mapStateToProps,actions) (ContactData);

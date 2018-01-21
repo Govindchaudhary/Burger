@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls'
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
-import axios from '../../axios-orders';
+
 
 
 class Burgerbuilder extends Component {
@@ -22,12 +22,15 @@ class Burgerbuilder extends Component {
     
     
     purchaseHandler = () => {
-        const ingredients = {
-            ingredients:this.props.ingredients
-            
-        }
-        axios.post('/ingredients.json',ingredients).then(console.log('success'));
+       if(this.props.isAuth) {
         this.setState({purchasing:true});
+        
+       }
+       else {
+           this.props.setAuthRedirectPath('/checkout');
+           this.props.history.push('/auth');
+       }
+        
     }
     purchaseCancelHandler = () => {
         this.setState( { purchasing: false } );
@@ -66,6 +69,7 @@ class Burgerbuilder extends Component {
                         
                         purchasable={this.updatePurchaseState(this.props.ingredients)}
                         ordered = {this.purchaseHandler}
+                        isAuth = {this.props.isAuth}
                         
                         price={this.props.price} />
                 </div>
@@ -95,7 +99,8 @@ const mapstateToProps = (store) => {
         {
             ingredients:store.Burger.ingredients,
             price:store.Burger.totalPrice,
-            error:store.Burger.error
+            error:store.Burger.error,
+            isAuth:store.Auth.token!==null
 
         });
     
