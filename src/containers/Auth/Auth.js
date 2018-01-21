@@ -122,7 +122,7 @@ class Auth extends Component {
 
         if ( this.props.error ) {
             errorMessage = (
-                <p style={{color:'red'}}>Invalid email or password</p>
+                <p style={{color:'red'}}>Incorrect email or password</p>
             );
         }
 
